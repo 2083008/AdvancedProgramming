@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 
 int iswhitespace(int c);
 
@@ -21,7 +22,7 @@ int main()
 			} 
 			valid_word = 1;	
 			index = 0;
-			word[0] = 0;
+			memset(word, 0, 12);
 		}
 		else if (!isalpha(c)){
 			valid_word = 0;

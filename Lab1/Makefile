@@ -7,16 +7,16 @@ CFlags = –Wall
 #	gcc -o $@ $^ $(CFLAGS) 
 
 copy:
-	$(CC) -o cfcopy cfcopy.c
+	$(CC) -o cfcopy.out cfcopy.c
 
 linecopy:
-	$(CC) -o lfcopy lfcopy.c
+	$(CC) -o lfcopy.out lfcopy.c
 
 linecount:
-	$(CC) -o lcount lcount.c
+	$(CC) -o lcount.out lcount.c
 
 wordcount:
-	$(CC) -o wcount wcount.c
+	$(CC) -o wcount.out wcount.c
 
 printword:
-	$(CC) -o genword genword.c
+	$(CC) -o genword.out genword.c
