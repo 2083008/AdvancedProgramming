@@ -1,0 +1,12 @@
+# depslib dependency file v1.0
+1384865136 source:/home/alex/Programming/AdvancedProgramming/AssEx/assessedExercise/tldmonitor.c
+	"date.h"
+	"tldlist.h"
+	<stdio.h>
+	<string.h>
+
+1381403082 /home/alex/Programming/AdvancedProgramming/AssEx/assessedExercise/date.h
+
+1381403090 /home/alex/Programming/AdvancedProgramming/AssEx/assessedExercise/tldlist.h
+	"date.h"
+
