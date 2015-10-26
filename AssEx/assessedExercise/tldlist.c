@@ -1,25 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "date.h"
+//#include "date.h"
 #include "tldlist.h"
 
 
 typedef struct tldlist{
-    int size;
+    long size;
     Date begin;
     Date end;
-    tldnode *root;
+    TLDNode *root;
 }TLDList;
 
 typedef struct tldnode{
     int data;
-    //int height;
-    tldnode *leftchild, *rightchild //require struct here?
+    char *hostname;
+	TLDNode* leftchild
+	TLDNode* rightchild
 }TLDNode;
 
 typedef struct tlditerator{
 
 }TLDIterator;
+
+int tldlist_insert(TLDList *tld, TLDNode *currentNode);
 
 TLDList *tldlist_create(Date *begin, Date *end)
 {
@@ -49,14 +52,95 @@ void tldlist_destroy(TLDList *tld)
 
 int tldlist_add(TLDList *tld, char *hostname, Date *d)
 {
-	new_element = malloc(sizeof(tldnode)); // allocate memory for the struct
+	if (date_compare(tld->begin,d) || (date_compare(d,tld->end))) // discard dates outside of begin and end
+	{
+		return 0;
+	}
 
+	new_element = malloc(sizeof(tldnode)); // allocate memory for the struct
 	if (new_element == NULL){
 		return 0; // return failed mallloc
 	}
+	new_element->hostname = hostname;
+	new_element->date = d;
+
+	
 	if (tld->root == NULL){
 		tld->root = new_element;
+		return 1;
 	} 
 
-	if(d)
+	if(tldlist_insert(tld,tld->root,new_element) 
+	{
+		tld->size++;
+		return 1;
+	}
+	else
+	{
+		free (new_element);
+		return 0;
+	}
+
+}
+
+long tldlist_count(TLDList *tld)
+{
+	return tld->size;
+}
+
+TLDIterator *tldlist_iter_create(TLDList *tld)
+{
+	return NULL;
+}
+
+TLDNode *tldlist_iter_next(TLDIterator *iter)
+{
+
+}
+
+void tldlist_iter_destroy(TLDIterator *iter)
+{
+
+}
+
+char *tldnode_tldname(TLDNode *node)
+{
+	return node->hostname;
+}
+
+long tldnode_count(TLDNode *node)
+{
+
+}
+
+
+int tldlist_insert(TLDList *tld, TLDNode *currentNode, TLDNode *insertNode)
+{
+	if (insertNode->data < insertNode->data)
+	{
+		if(currentNode->leftchild == NULL)
+		{
+			currentNode->leftchild = insertNode;
+			return 1;
+		}
+		else 
+		{
+			tldlist_insert(tld,currentNode->leftchild,insertNode);
+		}
+		
+	}
+	if (insertNode->data > insertNode->data)
+	{
+		if(currentNode->rightchild == NULL)
+		{
+			currentNode->rightchild = insertNode;
+			return 1;
+		}
+		else
+		{
+			tldlist_insert(tld,currentNode->rightchild,insertNode);
+			
+		}
+	}
+	return 0;
 }
