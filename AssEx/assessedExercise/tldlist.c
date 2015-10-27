@@ -27,7 +27,10 @@ struct tlditerator{
 
 
 TLDNode *create_node(char*hostname);
+char *hostname_strip(char *hostname);
 TLDNode *get_leftmost_node(TLDNode *node);
+void node_destroy(TLDNode *node);
+int insert(TLDNode *current_node, TLDNode *insert_node);
 
 //return the height of the node
 int height(TLDNode *node)
@@ -48,7 +51,9 @@ TLDList *tldlist_create(Date *begin, Date *end)
 {
     TLDList *new_tldlist = malloc(sizeof (TLDList));
     if (new_tldlist == NULL)
-	return NULL;
+		return NULL;
+
+	printf("TLDList Create!\n");
 
     new_tldlist->root = NULL;
     new_tldlist->begin = begin;
@@ -65,106 +70,103 @@ TLDList *tldlist_create(Date *begin, Date *end)
  */
 void tldlist_destroy(TLDList *tld)
 {
-/*
-	if (tld->root != 0)
-	{
-		destroy_tree(tld->leftchild);
-		destroy_tree(tld->rightchild);
-		free ( tld );
-	}
-*/
+	node_destroy(tld->root);
+}
+
+void node_destroy(TLDNode *node)
+{
+	if (node == NULL)
+		return;
+	node_destroy(node->left_child);
+	node_destroy(node->right_child);
+	free(node);
 }
 
 TLDNode *create_node(char *hostname)
 {
+	printf("Create node!\n");
 	TLDNode *new_element;
+	char* stripped_hostname = (char *)malloc(sizeof(char));
+	
 	new_element = malloc(sizeof (TLDNode)); // allocate memory for the struct
 	if (new_element == NULL)
 		return 0; // return failed mallloc
+	
 	new_element->left_child = NULL;
 	new_element->right_child = NULL;
 	new_element->parent = NULL;
+	new_element->count = 1;
+	stripped_hostname = hostname_strip(hostname);
+	new_element->hostname = stripped_hostname;
 
-	//hostname = hostname_strip(hostname);
-	new_element->hostname = hostname;
 	return new_element;
-}
-
-char* hostname_strip(char *hostname) 
-{
-	char* stripped_string = (char*)malloc(sizeof(char));
-	int temp = 0;
-	int i;
-	int length = strlen(hostname);
-	i = strlen(hostname);
-
-	for( i; hostname[i-1] != '.'; i-- ) // find the index of the last '.'
-	{
-		temp++;
-	}
-	strncpy(stripped_string, hostname+(length-temp),temp);
-    i = 0; // string to lower
-    for( i; stripped_string[i]; i++)
-    {
-		stripped_string[i] = tolower(stripped_string[i]);
-	}
-	//printf("%s\n",stripped_string);
-	return stripped_string;
 }
 
 int tldlist_add(TLDList *tld, char *hostname, Date *d)
 {
-	if (!(date_compare(d,tld->begin) && date_compare(tld->end,d))) //check in date bounds
+	// if d < begin || d > end    return 0;
+	if (date_compare(d,tld->begin) == -1 || date_compare(d, tld->end) == 1) //check in date bounds
 	{
 		return 0; //if not in date bounds return
 	}
 
 	TLDNode *new_element = create_node(hostname);
-
-	if (tld->root == NULL)
-	{ // empty tree so insert at root
+	printf("This is the hostname %s\n", new_element->hostname);
+	if (tld->root == NULL)										// empty tree so insert at root
+	{
+		printf("Successfully added %s\n", new_element->hostname);						
 		tld->root = new_element;
 		tld->count++;
 		return 1;
 	}
-	if(insert(tld->root, new_element)) // if successfully inserted
-	{
+	if (insert(tld->root, new_element)){
+		printf("Successfully added %s\n", new_element->hostname);
 		tld->count++;
-		return 1;	
-	}
-	return 0;
-}
-
-int insert(TLDNode *current_node, TLDNode *insert_node) //case statements??
-{
-	if(strcmp(current_node->hostname, insert_node->hostname) == 0) // current_node == insert_node
-	{
-		current_node->count++;
-		free(insert_node); // this node represented in count so free it
 		return 1;
 	}
-	if(strcmp(current_node->hostname, insert_node->hostname) == -1) // insert_node < current node
-	{
-		if (current_node->left_child == NULL) // found insertion point
-		{
-			current_node->left_child = insert_node;
-			insert_node->count++;
-			return 1;
-		}
-		insert(current_node->left_child,insert_node); //recurse left
-	}
-	if(strcmp(current_node->hostname, insert_node->hostname) == 1)
-	{
-		if (current_node->right_child == NULL)
-		{
-			current_node->right_child = insert_node;
-			insert_node->count++;
-			return 1;
-		}
-		insert(current_node->right_child,insert_node);
-	}
-	return 0;
+	return 0; 
 }
+
+int insert(TLDNode *root, TLDNode *insert_node) //case statements??
+{
+	TLDNode* cursor = root;
+	TLDNode* prev = NULL;
+	int goingLeft = 0;
+
+	while (cursor != NULL)
+	{
+		prev = cursor;
+		if(strcmp(cursor->hostname, insert_node->hostname) == 0)
+		{
+			cursor->count++; // TODO free node here
+			free(insert_node);
+			return 1;
+		}
+		else if(strcmp(insert_node->hostname, cursor->hostname) < 0)
+		{
+			cursor = cursor->left_child; // go left
+			goingLeft = 1;
+		}
+		else if(strcmp(insert_node->hostname, cursor->hostname) > 0) 
+		{
+			cursor = cursor->right_child;
+			goingLeft = 0;
+		}
+	}
+
+	if (goingLeft)
+	{
+		prev->left_child = insert_node;
+		return 1;
+	}
+	else
+	{
+		prev->right_child = insert_node;
+		return 1;
+	}
+} // return 0?
+	
+
 
 /*
  * tldlist_count returns the number of successful tldlist_add() calls since
@@ -172,6 +174,7 @@ int insert(TLDNode *current_node, TLDNode *insert_node) //case statements??
  */
 long tldlist_count(TLDList *tld)
 {
+	printf("tldlist Count %ld\n",tld->count);
 	return tld->count;
 }
 
@@ -188,12 +191,6 @@ TLDIterator *tldlist_iter_create(TLDList *tld)
 	return new_iter;
 }
 
-
-/*
- * tldnode_tldname returns the tld associated with the TLDNode
- */
-char *tldnode_tldname(TLDNode *node);
-
 /*
  * tldlist_iter_destroy destroys the iterator specified by `iter'
  */
@@ -207,6 +204,7 @@ void tldlist_iter_destroy(TLDIterator *iter)
  */
 char *tldnode_tldname(TLDNode *node)
 {
+	printf("in here oo\n");
 	return node->hostname;
 }
 
@@ -224,7 +222,7 @@ long tldnode_count(TLDNode *node)
  * to the TLDNode if successful, NULL if no more elements to return
  */
 TLDNode *tldlist_iter_next(TLDIterator *iter){
-
+	printf("Iter next \n");
     if (iter->last_visited == NULL) {  // go left if l
         iter->last_visited = get_leftmost_node(iter->tree->root);
         return iter->last_visited;
@@ -256,6 +254,28 @@ TLDNode *get_leftmost_node(TLDNode *node)
 		node = node->left_child;
 	}
 	return node;
+}
+
+char *hostname_strip(char *hostname) 
+{
+	char* stripped_string = (char*)malloc(sizeof(char));
+	int temp = 0;
+	int i;
+	int length = strlen(hostname);
+	i = strlen(hostname);
+
+	for( i; hostname[i-1] != '.'; i-- ) // find the index of the last '.'
+	{
+		temp++;
+	}
+	strncpy(stripped_string, hostname+(length-temp),temp);
+    i = 0; // string to lower
+    for( i; stripped_string[i]; i++)
+    {
+		stripped_string[i] = tolower(stripped_string[i]);
+	}
+
+	return stripped_string;
 }
 
 

@@ -1,3 +1,7 @@
 tldlist:
-	gcc -o myTLDlist.out tldlist.c tldlist.h tldmonitor.c date.c date.h
+	gcc -c date.c
+	gcc -c tldlist.c
+	gcc -c tldmonitor.c
+	gcc -o myTLDlist.out date.o tldlist.o tldmonitor.o
+
 

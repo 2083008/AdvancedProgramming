@@ -3,11 +3,11 @@
 #include <string.h>
 #include "date.h"
 
-typedef struct date {
+struct date {
     int day;
     int month;
     int year;
-} Date;
+};
 
 /*
  * date_create creates a Date structure from `datestr`
