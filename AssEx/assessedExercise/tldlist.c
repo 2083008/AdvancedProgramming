@@ -91,7 +91,7 @@ TLDNode *create_node(char *hostname)
 	new_element = malloc(sizeof (TLDNode)); // allocate memory for the struct
 	if (new_element == NULL)
 		return 0; // return failed mallloc
-	
+
 	new_element->left_child = NULL;
 	new_element->right_child = NULL;
 	new_element->parent = NULL;
@@ -113,14 +113,13 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d)
 	TLDNode *new_element = create_node(hostname);
 	printf("This is the hostname %s\n", new_element->hostname);
 	if (tld->root == NULL)										// empty tree so insert at root
-	{
-		printf("Successfully added %s\n", new_element->hostname);						
+	{					
 		tld->root = new_element;
 		tld->count++;
 		return 1;
 	}
-	if (insert(tld->root, new_element)){
-		printf("Successfully added %s\n", new_element->hostname);
+	else if (insert(tld->root, new_element)){
+
 		tld->count++;
 		return 1;
 	}
@@ -139,6 +138,7 @@ int insert(TLDNode *root, TLDNode *insert_node) //case statements??
 		if(strcmp(cursor->hostname, insert_node->hostname) == 0)
 		{
 			cursor->count++; // TODO free node here
+			printf("count of this tld is %ld\n", cursor->count);
 			free(insert_node);
 			return 1;
 		}
@@ -164,6 +164,7 @@ int insert(TLDNode *root, TLDNode *insert_node) //case statements??
 		prev->right_child = insert_node;
 		return 1;
 	}
+
 } // return 0?
 	
 
@@ -185,6 +186,7 @@ long tldlist_count(TLDList *tld)
 TLDIterator *tldlist_iter_create(TLDList *tld)
 {
 	TLDIterator *new_iter;
+	printf("New Iterator\n");
 	new_iter = malloc(sizeof(TLDIterator));
 	new_iter->last_visited = NULL;
 	new_iter->tree = tld;
@@ -223,27 +225,29 @@ long tldnode_count(TLDNode *node)
  */
 TLDNode *tldlist_iter_next(TLDIterator *iter){
 	printf("Iter next \n");
-    if (iter->last_visited == NULL) {  // go left if l
-        iter->last_visited = get_leftmost_node(iter->tree->root);
-        return iter->last_visited;
-    }
 
-    if (iter->last_visited->right_child != NULL) {      // if you have a right subtree, return furthest left child
-        iter->last_visited = get_leftmost_node(iter->last_visited->right_child);
-        return iter->last_visited;
-    }
-
-    while (iter->last_visited->parent != NULL) 
-    {      // if parent is to the right, it's the sucessor.
-        if (iter->last_visited->parent->left_child == iter->last_visited)
+	if (iter->last_visited == NULL)
 	{
-            iter->last_visited = iter->last_visited->parent;
-            return iter->last_visited;
-    	}
-        iter->last_visited = iter->last_visited->parent;
-    }
-
-  return NULL;    // else, return null
+		iter->last_visited = get_leftmost_node(iter->tree->root);
+		printf("Last visited\n");
+		return iter->last_visited;
+	}
+	else if (iter->last_visited->right_child != NULL)
+	{
+		iter->last_visited = get_leftmost_node(iter->last_visited->right_child);
+		return iter->last_visited;
+	}
+	else // else we need to go up the tree
+	{
+		TLDNode *parent;
+		parent = iter->last_visited->parent;
+		while (iter->last_visited != NULL && parent->right_child == iter->last_visited )
+		{
+			iter->last_visited = parent;
+			parent = parent->parent;
+		}
+		return parent;
+	}
 
 }
 
