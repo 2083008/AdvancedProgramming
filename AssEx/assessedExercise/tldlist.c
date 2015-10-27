@@ -31,6 +31,7 @@ char *hostname_strip(char *hostname);
 TLDNode *get_leftmost_node(TLDNode *node);
 void node_destroy(TLDNode *node);
 int insert(TLDNode *current_node, TLDNode *insert_node);
+int get_balance(TLDNode *node);
 
 //return the height of the node
 int height(TLDNode *node)
@@ -158,17 +159,47 @@ int insert(TLDNode *root, TLDNode *insert_node) //case statements??
 	{
 		prev->left_child = insert_node;
 		insert_node->parent = prev;
-		return 1;
 	}
 	else
 	{
 		prev->right_child = insert_node;
 		insert_node->parent = prev;
-		return 1;
 	}
+	/*
+	while(insert_node->parent != NULL) // update the heights in the branch
+	{
 
-} // return 0?
-	
+	}
+	return 1;
+	*/
+} 
+
+int get_balance(TLDNode *node) // height left - heigh right
+{
+	if (node == NULL)
+		return 0;
+	return height(node->left_child) - height(node->right_child); // Node-> left - 
+}
+
+/*
+TLDNode *rightRotate(struct node *y)
+{
+    TLDNode *x = y->left;
+    TLDNode *T2 = x->right;
+ 
+    // Perform rotation
+    x->right = y;
+    y->left = T2;
+ 
+    // Update heights
+    y->height = max(height(y->left), height(y->right))+1;
+    x->height = max(height(x->left), height(x->right))+1;
+ 
+    // Return new root
+    return x;
+}
+
+*/	
 
 
 /*
