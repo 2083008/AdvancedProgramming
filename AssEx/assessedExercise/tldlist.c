@@ -90,7 +90,7 @@ TLDNode *create_node(char *hostname)
 	return new_element;
 }
 
-char* hostname_strip(char *hostname) //TODO
+char* hostname_strip(char *hostname) 
 {
 	char* stripped_string = (char*)malloc(sizeof(char));
 	int temp = 0;
