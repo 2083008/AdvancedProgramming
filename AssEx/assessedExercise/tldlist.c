@@ -90,23 +90,34 @@ TLDNode *create_node(char *hostname)
 	return new_element;
 }
 
-char* hostname_strip(char *hostname)
+char* hostname_strip(char *hostname) //TODO
 {
-	char* stripped_string = malloc(strlen(hostname));
+	char* stripped_string = (char*)malloc(4*sizeof(char));
+	stripped_string = 'uk';
+	printf("%s\n", hostname);
 	int temp = 0;
-	int i = strlen(hostname);
-	for( i; hostname[i] != "."; i-- )
+	int i;
+	int length = strlen(stripped_string);
+	i = strlen(hostname);
+
+	for( i; hostname[i-1] != '.'; i-- ) // find the index of the last '.'
 	{
-		stripped_string[temp] = hostname[i];
 		temp++;
 	}
-	strrev(stripped_string);
+	
+    i = 0; // string to lower
+    for( i; stripped_string[i]; i++)
+    {
+		stripped_string[i] = tolower(stripped_string[i]);
+	}
+	stripped_string[temp+1] = '\0';
+	printf("%s\n",stripped_string);
 	return stripped_string;
 }
 
 int tldlist_add(TLDList *tld, char *hostname, Date *d)
 {
-	if (!(date_compare(d,tld->begin) && date_compare(tld->end,d)))
+	if (!(date_compare(d,tld->begin) && date_compare(tld->end,d))) //check in date bounds
 	{
 		return 0; //if not in date bounds return
 	}
@@ -119,7 +130,7 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d)
 		tld->count++;
 		return 1;
 	}
-	if(insert(tld->root, new_element))
+	if(insert(tld->root, new_element)) // if successfully inserted
 	{
 		tld->count++;
 		return 1;	
@@ -132,6 +143,7 @@ int insert(TLDNode *current_node, TLDNode *insert_node) //case statements??
 	if(strcmp(current_node->hostname, insert_node->hostname) == 0) // current_node == insert_node
 	{
 		current_node->count++;
+		free(insert_node); // this node represented in count so free it
 		return 1;
 	}
 	if(strcmp(current_node->hostname, insert_node->hostname) == -1) // insert_node < current node
@@ -250,6 +262,6 @@ TLDNode *get_leftmost_node(TLDNode *node)
 }
 
 
-
+//left left case   two nodes on the left of first unbalanced node
 
 
