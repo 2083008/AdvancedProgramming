@@ -31,7 +31,8 @@ char *hostname_strip(char *hostname);
 TLDNode *get_leftmost_node(TLDNode *node);
 void node_destroy(TLDNode *node);
 int insert(TLDNode *current_node, TLDNode *insert_node);
-int get_balance(TLDNode *node);
+int balance(TLDNode *node);
+void update_height(TLDNode *node); // update height
 
 //return the height of the node
 int height(TLDNode *node)
@@ -54,7 +55,7 @@ TLDList *tldlist_create(Date *begin, Date *end)
     if (new_tldlist == NULL)
 		return NULL;
 
-	printf("TLDList Create!\n");
+	//printf("TLDList Create!\n");
 
     new_tldlist->root = NULL;
     new_tldlist->begin = begin;
@@ -72,6 +73,7 @@ TLDList *tldlist_create(Date *begin, Date *end)
 void tldlist_destroy(TLDList *tld)
 {
 	node_destroy(tld->root);
+	free(tld);
 }
 
 void node_destroy(TLDNode *node)
@@ -80,14 +82,13 @@ void node_destroy(TLDNode *node)
 		return;
 	node_destroy(node->left_child);
 	node_destroy(node->right_child);
+	free(node->hostname);
 	free(node);
 }
 
 TLDNode *create_node(char *hostname)
 {
-	printf("Create node!\n");
 	TLDNode *new_element;
-	char* stripped_hostname = (char *)malloc(sizeof(char));
 	
 	new_element = malloc(sizeof (TLDNode)); // allocate memory for the struct
 	if (new_element == NULL)
@@ -97,8 +98,7 @@ TLDNode *create_node(char *hostname)
 	new_element->right_child = NULL;
 	new_element->parent = NULL;
 	new_element->count = 1;
-	stripped_hostname = hostname_strip(hostname);
-	new_element->hostname = stripped_hostname;
+	new_element->hostname = hostname_strip(hostname);
 
 	return new_element;
 }
@@ -112,7 +112,7 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d)
 	}
 
 	TLDNode *new_element = create_node(hostname);
-	printf("This is the hostname %s\n", new_element->hostname);
+	//printf("This is the hostname %s\n", new_element->hostname);
 	if (tld->root == NULL)										// empty tree so insert at root
 	{					
 		tld->root = new_element;
@@ -139,8 +139,10 @@ int insert(TLDNode *root, TLDNode *insert_node) //case statements??
 		if(strcmp(cursor->hostname, insert_node->hostname) == 0)
 		{
 			cursor->count++; // TODO free node here
-			printf("count of this tld is %ld\n", cursor->count);
+			//printf("count of this tld is %ld\n", cursor->count);
+			free(insert_node->hostname);
 			free(insert_node);
+			
 			return 1;
 		}
 		else if(strcmp(insert_node->hostname, cursor->hostname) < 0)
@@ -159,48 +161,62 @@ int insert(TLDNode *root, TLDNode *insert_node) //case statements??
 	{
 		prev->left_child = insert_node;
 		insert_node->parent = prev;
+		update_height(insert_node);
+		return 1;
 	}
 	else
 	{
 		prev->right_child = insert_node;
 		insert_node->parent = prev;
+		update_height(insert_node); // update height of ancerstors
+		//	if (balance(insert_node)
+		
+					
+	
+		return 1;
 	}
-	/*
-	while(insert_node->parent != NULL) // update the heights in the branch
+
+} // return 0?
+	
+int balance(TLDNode *node)
+{
+	while (node->parent)
 	{
-
+		node = node->parent;
+		if (get_balance(node) < -1) // right tree too large
+		{
+			// work out case
+		}
+		if (get_balance(node) > 1) // left tree too large
+		{
+			// work out case
+		}
 	}
-	return 1;
-	*/
-} 
-
-int get_balance(TLDNode *node) // height left - heigh right
-{
-	if (node == NULL)
-		return 0;
-	return height(node->left_child) - height(node->right_child); // Node-> left - 
+	return 1;		
 }
 
-/*
-TLDNode *rightRotate(struct node *y)
+int get_balance(TLDNode *node) // return the left heigh - right height
 {
-    TLDNode *x = y->left;
-    TLDNode *T2 = x->right;
- 
-    // Perform rotation
-    x->right = y;
-    y->left = T2;
- 
-    // Update heights
-    y->height = max(height(y->left), height(y->right))+1;
-    x->height = max(height(x->left), height(x->right))+1;
- 
-    // Return new root
-    return x;
+	int balance = 0;
+	if (node->right_child)
+	{
+		balance = balance - node->right_child->height; 
+	}
+	else if (node->left_child)
+	{
+		balance = balance + node->left_child->height;
+	}
+	return balance;
 }
 
-*/	
-
+void update_height(TLDNode *node) // update height
+{	
+	while(node->parent != NULL)
+	{
+		node->parent->height++;
+		node = node->parent;		
+	}	
+}
 
 /*
  * tldlist_count returns the number of successful tldlist_add() calls since
@@ -208,7 +224,7 @@ TLDNode *rightRotate(struct node *y)
  */
 long tldlist_count(TLDList *tld)
 {
-	printf("tldlist Count %ld\n",tld->count);
+	//printf("tldlist Count %ld\n",tld->count);
 	return tld->count;
 }
 
@@ -219,7 +235,7 @@ long tldlist_count(TLDList *tld)
 TLDIterator *tldlist_iter_create(TLDList *tld)
 {
 	TLDIterator *new_iter;
-	printf("New Iterator\n");
+	//printf("New Iterator\n");
 	new_iter = malloc(sizeof(TLDIterator));
 	new_iter->last_visited = NULL;
 	new_iter->tree = tld;
@@ -231,6 +247,7 @@ TLDIterator *tldlist_iter_create(TLDList *tld)
  */
 void tldlist_iter_destroy(TLDIterator *iter)
 {
+	free(iter->last_visited); // do i need to free??
 	free(iter);
 }
 
@@ -293,7 +310,6 @@ TLDNode *get_leftmost_node(TLDNode *node)
 
 char *hostname_strip(char *hostname) 
 {
-	char* stripped_string = (char*)malloc(sizeof(char));
 	int temp = 0;
 	int i;
 	int length = strlen(hostname);
@@ -303,14 +319,16 @@ char *hostname_strip(char *hostname)
 	{
 		temp++;
 	}
-	strncpy(stripped_string, hostname+(length-temp),temp);
-    i = 0; // string to lower
-    for( i; stripped_string[i]; i++)
-    {
+	
+	char stripped_string[temp];
+	i = 0;
+	for( i; i<= temp; i++)
+	{
+		stripped_string[i] = hostname[length - temp + i];
 		stripped_string[i] = tolower(stripped_string[i]);
 	}
+	return strdup(stripped_string);
 
-	return stripped_string;
 }
 
 
