@@ -4,9 +4,16 @@
 #include "date.h"
 #include "tldlist.h"
 
+/*
+* Alex Smith - 2083008
+* BSTree implementation 
+* AP3 Exercise 1
+* This is my own work as defined in the Academic Ethics agreement 
+*/
+
+
 struct tldnode{
     char *hostname;
-    int height;
     long count;
     TLDNode *left_child;
     TLDNode *right_child;
@@ -25,22 +32,11 @@ struct tlditerator{
     TLDNode *last_visited;
 };
 
-
 TLDNode *create_node(char*hostname);
 char *hostname_strip(char *hostname);
 TLDNode *get_leftmost_node(TLDNode *node);
 void node_destroy(TLDNode *node);
 int insert(TLDNode *current_node, TLDNode *insert_node);
-int balance(TLDNode *node);
-void update_height(TLDNode *node); // update height
-
-//return the height of the node
-int height(TLDNode *node)
-{
-    if (node == NULL)
-        return 0;
-    return node->height;
-}
 
 /*
  * tldlist_create generates a list structure for storing counts against
@@ -76,6 +72,9 @@ void tldlist_destroy(TLDList *tld)
 	free(tld);
 }
 
+/*
+ * Destroy all the chilren from the given node recursively 
+ */
 void node_destroy(TLDNode *node)
 {
 	if (node == NULL)
@@ -86,6 +85,9 @@ void node_destroy(TLDNode *node)
 	free(node);
 }
 
+/*
+ * Create and return a node which returns the node, 0 if it failed
+ */
 TLDNode *create_node(char *hostname)
 {
 	TLDNode *new_element;
@@ -103,6 +105,9 @@ TLDNode *create_node(char *hostname)
 	return new_element;
 }
 
+/*
+ * Create a node and add it to the TLDList if its in the bounds
+ */
 int tldlist_add(TLDList *tld, char *hostname, Date *d)
 {
 	// if d < begin || d > end    return 0;
@@ -127,7 +132,10 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d)
 	return 0; 
 }
 
-int insert(TLDNode *root, TLDNode *insert_node) //case statements??
+/*
+ * Find the position the new node should be inserted
+ */
+int insert(TLDNode *root, TLDNode *insert_node) 
 {
 	TLDNode* cursor = root;
 	TLDNode* prev = NULL;
@@ -161,63 +169,19 @@ int insert(TLDNode *root, TLDNode *insert_node) //case statements??
 	{
 		prev->left_child = insert_node;
 		insert_node->parent = prev;
-		update_height(insert_node);
 		return 1;
 	}
 	else
 	{
 		prev->right_child = insert_node;
 		insert_node->parent = prev;
-		update_height(insert_node); // update height of ancerstors
 		//	if (balance(insert_node)
-		
-					
 	
 		return 1;
 	}
 
-} // return 0?
+}
 	
-int balance(TLDNode *node)
-{
-	while (node->parent)
-	{
-		node = node->parent;
-		if (get_balance(node) < -1) // right tree too large
-		{
-			// work out case
-		}
-		if (get_balance(node) > 1) // left tree too large
-		{
-			// work out case
-		}
-	}
-	return 1;		
-}
-
-int get_balance(TLDNode *node) // return the left heigh - right height
-{
-	int balance = 0;
-	if (node->right_child)
-	{
-		balance = balance - node->right_child->height; 
-	}
-	else if (node->left_child)
-	{
-		balance = balance + node->left_child->height;
-	}
-	return balance;
-}
-
-void update_height(TLDNode *node) // update height
-{	
-	while(node->parent != NULL)
-	{
-		node->parent->height++;
-		node = node->parent;		
-	}	
-}
-
 /*
  * tldlist_count returns the number of successful tldlist_add() calls since
  * the creation of the TLDList
@@ -256,7 +220,6 @@ void tldlist_iter_destroy(TLDIterator *iter)
  */
 char *tldnode_tldname(TLDNode *node)
 {
-	//printf("in here oo\n");
 	return node->hostname;
 }
 
@@ -274,23 +237,22 @@ long tldnode_count(TLDNode *node)
  * to the TLDNode if successful, NULL if no more elements to return
  */
 TLDNode *tldlist_iter_next(TLDIterator *iter){
-	//printf("Iter next \n");
 
-	if (iter->last_visited == NULL)
+	// find the successor of a node
+	if (iter->last_visited == NULL) // going to the leftmost for first element
 	{
 		iter->last_visited = get_leftmost_node(iter->tree->root);
-		//printf("Last visited\n");
 		return iter->last_visited;
 	}
 
 	if(iter->last_visited->right_child != NULL)
 	{
-		iter->last_visited = get_leftmost_node(iter->last_visited->right_child);
+		iter->last_visited = get_leftmost_node(iter->last_visited->right_child); // get the left of right
 		return iter->last_visited;
 	}
 
 	TLDNode *parent = iter->last_visited->parent;
-	while(parent != NULL && iter->last_visited == parent->right_child)
+	while(parent != NULL && iter->last_visited == parent->right_child) // go up the tree
 	{
 		iter->last_visited = parent;
 		parent = parent->parent;
@@ -299,8 +261,13 @@ TLDNode *tldlist_iter_next(TLDIterator *iter){
 	return iter->last_visited;
 }
 
+/*
+ * takes a node and gets the leftmost of its children
+ */
 TLDNode *get_leftmost_node(TLDNode *node)
 {
+	if (node == NULL)
+		return NULL;
 	while (node->left_child != NULL)
 	{
 		node = node->left_child;
@@ -308,6 +275,9 @@ TLDNode *get_leftmost_node(TLDNode *node)
 	return node;
 }
 
+/*
+ * takes a tld and returns the com uk extension in lower case
+ */
 char *hostname_strip(char *hostname) 
 {
 	int temp = 0;
@@ -330,8 +300,5 @@ char *hostname_strip(char *hostname)
 	return strdup(stripped_string);
 
 }
-
-
-//left left case   two nodes on the left of first unbalanced node
 
 

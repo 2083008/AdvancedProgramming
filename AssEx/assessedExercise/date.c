@@ -3,6 +3,13 @@
 #include <string.h>
 #include "date.h"
 
+/*
+* Alex Smith - 2083008
+* Date implementation 
+* AP3 Exercise 1
+* This is my own work as defined in the Academic Ethics agreement 
+*/
+
 struct date {
     int day;
     int month;
@@ -16,12 +23,13 @@ struct date {
  *         NULL if not (syntax error)
  */
 Date *date_create(char *datestr){
+
     int day, month, year;
 
     Date *new_date = malloc (sizeof (Date));
 
     if (new_date == NULL) return NULL;
-    sscanf(datestr, "%d/%d/%d", &day, &month, &year);
+    sscanf(datestr, "%d/%d/%d", &day, &month, &year); // strip the day month year..
 
     new_date->day = day;
     new_date->month = month;
