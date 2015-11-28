@@ -1,4 +1,4 @@
-#include "x.y"
+#include "x.h"
 this is random shit
-#include "a.b"
+#include "a.h"
 #include <stdlib.h>
