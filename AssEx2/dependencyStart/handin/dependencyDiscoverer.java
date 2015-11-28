@@ -26,7 +26,7 @@ public class dependencyDiscoverer {
 		for (int i = 1; i<args.length; i++) {
 			files.add(args[i]);
 		}
-		includes = getIncludes(paths,files);
+		master = getMaster(paths,files);
 	}
 
 	/*
@@ -59,15 +59,16 @@ public class dependencyDiscoverer {
 	/*
 	* Hashmap Key = file Value = include files
 	*/
-	private ArrayList getIncludes(ArrayList<String> paths, ArrayList<String> files) {
+	private Hashtable<String,ArrayList<String>> getMaster(ArrayList<String> paths, ArrayList<String> files) {
 		//ArrayList includes = new ArrayList();
-
+		Hashtable<String,ArrayList<String>> master = new Hashtable();
 		for (int i =0; i<paths.size(); i++) {
 			System.out.println("Paths [i] -> " + paths.get(i));
 			BufferedReader reader = null;
 			ArrayList file_includes = new ArrayList();
 			try {
 				for(int j=0; j<files.size(); j++) {
+					System.out.println("Looking for file ... " +paths.get(i) + files.get(j));
 				    File file = new File(paths.get(i) + files.get(j)); // "x.y"
 				    reader = new BufferedReader(new FileReader(file));
 
@@ -78,14 +79,14 @@ public class dependencyDiscoverer {
 				    		
 				    	}
 				    }
-				    this.master.put(paths.get(i), file_includes);
+				    master.put(paths.get(i), file_includes);
 				    System.out.println("FILE_INCLUDES " + file_includes);
 				}
 			} catch (IOException e) {
 			    e.printStackTrace(); 	
 			}
 		}
-		return includes;
+		return master;
 	}
 	
 	
