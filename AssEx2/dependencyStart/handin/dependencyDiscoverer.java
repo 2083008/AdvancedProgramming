@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -8,6 +9,7 @@ import java.io.IOException;
 public class dependencyDiscoverer {
 	
 	private ArrayList<String> paths;
+	private Hashtable<String,ArrayList<String>> master;
 	private ArrayList<String> includes;
 	//private final BlockingQueue<T> workQueue; // http://stackoverflow.com/questions/2233561/producer-consumer-work-queues
 	
@@ -20,35 +22,13 @@ public class dependencyDiscoverer {
 	public dependencyDiscoverer(String[] args) {
 		paths = getPaths(args); // check args correct here
 		System.out.println("Succesfully got paths");
-
-		includes = getIncludes(args);
-	}
-	/*
-	* Hashmap Key = file Value = include files
-	*/
-	private ArrayList getIncludes(String[] args) {
-		ArrayList includes = new ArrayList();
-		for (int i =1; i<args.length; i++) {
-			BufferedReader reader = null;
-			try {
-				System.out.println("Args[i] -->" + args[i]);
-			    File file = new File(args[i]); // "x.y"
-			    reader = new BufferedReader(new FileReader(file));
-
-			    String line;
-			    while ((line = reader.readLine()) != null) {
-			        if (line.startsWith("#include \"")) {
-			    		includes.add(line.split("\"")[1]); // get string between quotes
-			    	}
-			    }
-
-			} catch (IOException e) {
-			    e.printStackTrace(); 	
-			}
+		ArrayList<String> files = new ArrayList<String>();
+		for (int i = 1; i<args.length; i++) {
+			files.add(args[i]);
 		}
-		return includes;
+		includes = getIncludes(paths,files);
 	}
-	
+
 	/*
 	 * return ArrayList<String>    takes command line args
 	 */
@@ -58,6 +38,7 @@ public class dependencyDiscoverer {
 		if (args.length <= 1) {
 			throw new IllegalArgumentException("Usage: java -classpath . dependancyDiscoverer [-Idir] extension");
 		}
+		paths.add("./");     							// check working directory
 		paths.add(args[0].substring(2));				// add -Idir strip off -I		
 		System.out.println("PATHS ->" + paths);
 		String cpath = System.getenv("CPATH");
@@ -75,6 +56,39 @@ public class dependencyDiscoverer {
 		
 		return paths;
 	}
+	/*
+	* Hashmap Key = file Value = include files
+	*/
+	private ArrayList getIncludes(ArrayList<String> paths, ArrayList<String> files) {
+		//ArrayList includes = new ArrayList();
+
+		for (int i =0; i<paths.size(); i++) {
+			System.out.println("Paths [i] -> " + paths.get(i));
+			BufferedReader reader = null;
+			ArrayList file_includes = new ArrayList();
+			try {
+				for(int j=0; j<files.size(); j++) {
+				    File file = new File(paths.get(i) + files.get(j)); // "x.y"
+				    reader = new BufferedReader(new FileReader(file));
+
+				    String line;
+				    while ((line = reader.readLine()) != null) {
+				        if (line.startsWith("#include \"")) {
+				    		file_includes.add(line.split("\"")[1]);
+				    		
+				    	}
+				    }
+				    this.master.put(paths.get(i), file_includes);
+				    System.out.println("FILE_INCLUDES " + file_includes);
+				}
+			} catch (IOException e) {
+			    e.printStackTrace(); 	
+			}
+		}
+		return includes;
+	}
+	
+	
 	
 	@Override
 	public String toString() {
