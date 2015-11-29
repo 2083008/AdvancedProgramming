@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,7 +10,6 @@ public class dependencyDiscoverer {
 	
 	private ArrayList<String> paths;
 	private Hashtable<String,ArrayList<String>> master;
-	private ArrayList<String> includes;
 	//private final BlockingQueue<T> workQueue; // http://stackoverflow.com/questions/2233561/producer-consumer-work-queues
 	
 	public static void main(String[] args) {
@@ -22,7 +20,8 @@ public class dependencyDiscoverer {
 	
 	public dependencyDiscoverer(String[] args) {
 		paths = getPaths(args); // check args correct here
-		System.out.println("Succesfully got paths");
+		System.out.println("Succesfully got paths" + paths);
+		
 		ArrayList<String> files = new ArrayList<String>();
 		for (int i = 1; i<args.length; i++) {
 			files.add(args[i]);
@@ -40,33 +39,29 @@ public class dependencyDiscoverer {
 			throw new IllegalArgumentException("Usage: java -classpath . dependancyDiscoverer [-Idir] extension");
 		}
 		paths.add("./");     							// check working directory
-		paths.add(args[0].substring(2)+ "/");				// add -Idir strip off -I		
+		paths.add(args[0].substring(2) + "/");				// add -Idir strip off -I		
 		System.out.println("PATHS ->" + paths);
 		String cpath = System.getenv("CPATH");
-		if (cpath == null) {
-			System.out.println("no paths");
-			return paths;
+		if (cpath != null) {
+			System.out.println("WE are in here");
+			String[] slicedcpath = cpath.split(":");  		// args[2].split(":");
+		
+			for (String element : slicedcpath) {
+				paths.add(element + "/");
+			}
 		}
-
-		String[] slicedcpath = cpath.split(":");  		// args[2].split(":");
-		
-		for (String element : slicedcpath) {
-			paths.add(element);
-		}
-		
-		
 		return paths;
 	}
+	
 	/*
 	* Hashmap Key = file Value = include files
 	*/
 	private Hashtable<String,ArrayList<String>> getMaster(ArrayList<String> paths, ArrayList<String> files) {
-		//ArrayList includes = new ArrayList();
-		Hashtable<String,ArrayList<String>> master = new Hashtable();
+		Hashtable<String,ArrayList<String>> master = new Hashtable<String, ArrayList<String>>();
 		for (int i =0; i<paths.size(); i++) {
 			System.out.println("Paths [i] -> " + paths.get(i));
 			BufferedReader reader = null;
-			ArrayList file_includes = new ArrayList();
+			ArrayList<String> file_includes = new ArrayList<String>();
 			
 				for(int j=0; j<files.size(); j++) {
 					System.out.println("Looking for file ... " +paths.get(i) + files.get(j));
