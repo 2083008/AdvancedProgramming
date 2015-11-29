@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 
 public class dependencyDiscoverer {
 	
@@ -39,7 +40,7 @@ public class dependencyDiscoverer {
 			throw new IllegalArgumentException("Usage: java -classpath . dependancyDiscoverer [-Idir] extension");
 		}
 		paths.add("./");     							// check working directory
-		paths.add(args[0].substring(2));				// add -Idir strip off -I		
+		paths.add(args[0].substring(2)+ "/");				// add -Idir strip off -I		
 		System.out.println("PATHS ->" + paths);
 		String cpath = System.getenv("CPATH");
 		if (cpath == null) {
@@ -66,25 +67,28 @@ public class dependencyDiscoverer {
 			System.out.println("Paths [i] -> " + paths.get(i));
 			BufferedReader reader = null;
 			ArrayList file_includes = new ArrayList();
-			try {
+			
 				for(int j=0; j<files.size(); j++) {
 					System.out.println("Looking for file ... " +paths.get(i) + files.get(j));
-				    File file = new File(paths.get(i) + files.get(j)); // "x.y"
-				    reader = new BufferedReader(new FileReader(file));
-
-				    String line;
-				    while ((line = reader.readLine()) != null) {
-				        if (line.startsWith("#include \"")) {
-				    		file_includes.add(line.split("\"")[1]);
-				    		
-				    	}
-				    }
+					try {
+					    File file = new File(paths.get(i) + files.get(j)); // "x.y"
+					    reader = new BufferedReader(new FileReader(file));
+					    String line;
+					    while ((line = reader.readLine()) != null) {
+					        if (line.startsWith("#include \"")) {
+					    		file_includes.add(line.split("\"")[1]);
+					    		
+					    	}
+					 	}
+					} catch (FileNotFoundException e) {
+					    	continue;
+					} catch (IOException e) {
+				   			e.printStackTrace(); 	
+					}
 				    master.put(paths.get(i), file_includes);
 				    System.out.println("FILE_INCLUDES " + file_includes);
 				}
-			} catch (IOException e) {
-			    e.printStackTrace(); 	
-			}
+			
 		}
 		return master;
 	}
@@ -95,10 +99,6 @@ public class dependencyDiscoverer {
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		for (String item : this.paths) {
-			sb.append(item + "\n");
-		}
-		sb.append("Below are the includes!\n");
-		for (String item : this.includes) {
 			sb.append(item + "\n");
 		}
 		return sb.toString();
