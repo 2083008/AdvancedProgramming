@@ -15,6 +15,7 @@ public class dependencyDiscoverer {
 	private ArrayList<String> paths;
 	private ConcurrentHashMap<String,ArrayList<String>> master;
 	private ConcurrentLinkedQueue<String> workQueue;
+	private Hashtable<String,ArrayList<String>> master;
 	//private final BlockingQueue<T> workQueue; // http://stackoverflow.com/questions/2233561/producer-consumer-work-queues
 	
 	public static void main(String[] args) {
@@ -27,10 +28,7 @@ public class dependencyDiscoverer {
 	public dependencyDiscoverer(String[] args) {
 		paths = getPaths(args); // check args correct here
 		workQueue = getWorkQueue(args);
-		ArrayList<String> files = new ArrayList<String>();
-		for (int i = 1; i<args.length; i++) {
-			files.add(args[i]);
-		}
+		System.out.println("Succesfully got paths" + paths);
 		master = getMaster(workQueue);
 	}
 
@@ -52,22 +50,17 @@ public class dependencyDiscoverer {
 			throw new IllegalArgumentException("Usage: java -classpath . dependancyDiscoverer [-Idir] extension");
 		}
 		paths.add("./");     							// check working directory
-		paths.add(args[0].substring(2)+ "/");				// add -Idir strip off -I		
+		paths.add(args[0].substring(2) + "/");				// add -Idir strip off -I		
 		System.out.println("PATHS ->" + paths);
 		String cpath = System.getenv("CPATH");
-		if (cpath == null) {
-			System.out.println("no paths");
-			return paths;
-		}
-
-		String[] slicedcpath = cpath.split(":");  		// args[2].split(":");
-		
+		if (cpath != null) {
+			System.out.println("WE are in here");
+			String[] slicedcpath = cpath.split(":");  		// args[2].split(":");
 		for (String element : slicedcpath) {
 			paths.add(element + "/");
 		}
 		return paths;
 	}
-
 	/*
 	* ConcurrentHashMap Key = file Value = include files
 	*/
