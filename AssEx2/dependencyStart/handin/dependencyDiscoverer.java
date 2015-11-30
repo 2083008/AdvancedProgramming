@@ -1,7 +1,6 @@
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -31,10 +30,21 @@ public class dependencyDiscoverer {
 		if (crawlerpath != null) {
 			threadNum =  Integer.parseInt(crawlerpath);
 		}
+		System.out.println("without threading");
+		System.out.println(discoverer);
+
+		discoverer.workQueue = discoverer.getWorkQueue(args);
+		while (discoverer.workQueue.peek() != null) {
+			Worker newThread = new Worker(discoverer.workQueue.poll(), discoverer.master);
+			Thread t1 = new Thread(newThread);
+			t1.start();
+			try {
+				t1.join();
+			} catch (InterruptedException e ){
+
+			}
+		}	
 		
-		//Worker worker = new Worker("Test/*.c");
-		//Thread thread = new Thread(worker);
-		//thread.start();
 		System.out.println(discoverer);
 	}
 	
@@ -144,8 +154,8 @@ public class dependencyDiscoverer {
 			String line;
 			String header;
 			while ((line = reader.readLine()) != null) {
-				if (line.startsWith("#include \"")) {     		// if we find include then search??
-					header = line.split("\"")[1];        		// eg a.h
+				if (line.startsWith("#include \"")) {     			// if we find include then search??
+					header = line.split("\"")[1];        			// eg a.h
 					if (getExtension(header).equals(".h")) {
 						file_includes.add(header);
 					}
@@ -181,7 +191,6 @@ public class dependencyDiscoverer {
 			for (String item : includes) {
 				sb.append(item);
 				sb.append(" ");
-				
 			}
 			sb.append("\n");
 	    }

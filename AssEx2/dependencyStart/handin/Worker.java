@@ -21,6 +21,7 @@ public class Worker implements Runnable{
 	public void run() {
 		ArrayList<String> file_includes = new ArrayList<String>();
 		System.out.println("From the worker THREAD");
+		System.out.println(master);
 		try {
 			
 			BufferedReader reader = null;
@@ -42,6 +43,8 @@ public class Worker implements Runnable{
 		}
 		//master.put(file_string, file_includes);
 		System.out.println("FILE_INCLUDES " + file_includes);
+		System.out.println(master);
+
 	}
 	
 }
