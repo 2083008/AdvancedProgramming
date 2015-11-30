@@ -1,21 +1,23 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
+
 public class dependencyDiscoverer {
 	
 	private ArrayList<String> paths;
 	private Hashtable<String,ArrayList<String>> master;
-	private ArrayList<String> includes;
+	private ArrayBlockingQueue<String> workQueue;
 	//private final BlockingQueue<T> workQueue; // http://stackoverflow.com/questions/2233561/producer-consumer-work-queues
 	
 	public static void main(String[] args) {
 		dependencyDiscoverer discoverer = new dependencyDiscoverer(args);
+
 		System.out.println(discoverer);
 
 	}
@@ -58,10 +60,9 @@ public class dependencyDiscoverer {
 		return paths;
 	}
 	/*
-	* Hashmap Key = file Value = include files
+	* Hashtable Key = file Value = include files
 	*/
 	private Hashtable<String,ArrayList<String>> getMaster(ArrayList<String> paths, ArrayList<String> files) {
-		//ArrayList includes = new ArrayList();
 		Hashtable<String,ArrayList<String>> master = new Hashtable();
 		for (int i =0; i<paths.size(); i++) {
 			System.out.println("Paths [i] -> " + paths.get(i));
@@ -69,7 +70,7 @@ public class dependencyDiscoverer {
 			ArrayList file_includes = new ArrayList();
 			
 				for(int j=0; j<files.size(); j++) {
-					System.out.println("Looking for file ... " +paths.get(i) + files.get(j));
+					System.out.println("Looking for file ... "  + files.get(j)); //+paths.get(i)
 					try {
 					    File file = new File(paths.get(i) + files.get(j)); // "x.y"
 					    reader = new BufferedReader(new FileReader(file));
