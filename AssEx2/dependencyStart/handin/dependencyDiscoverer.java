@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -38,7 +39,7 @@ public class dependencyDiscoverer {
 	}
 	
 	public dependencyDiscoverer(String[] args) {
-		paths = getPaths(args); // check args correct here
+		paths = getPaths(args); 									// check args correct here
 		workQueue = getWorkQueue(args);
 		master = getMaster(workQueue);
 	}
@@ -122,6 +123,7 @@ public class dependencyDiscoverer {
 				File file_read = new File(path + file);
 				reader = new BufferedReader(new FileReader(file_read));
 				System.out.println("FILE EXISTS");
+				
 				return true;
 			} catch (FileNotFoundException e) {
 				continue;
@@ -163,22 +165,25 @@ public class dependencyDiscoverer {
 
 		System.out.println("BELOW IS THE TABLE");
 		StringBuffer sb = new StringBuffer();
-		Iterator<Entry<String, ArrayList<String>>> it = this.master.entrySet().iterator();
 		String[] split_file;
 		String file;
 		String raw_file;
-
-	    while (it.hasNext()) {
-	        Map.Entry pair = (Map.Entry)it.next();
-	        split_file = ((String) pair.getKey()).split("/"); //get /Test/.../x.y to x.y
-	        file = split_file[split_file.length -1];
-	        raw_file = file.substring(0, file.length() -2);
-	        sb.append(raw_file + ".o ");
-	        sb.append(file);
-	        sb.append(pair.getValue());
-	        sb.append("\n");
-	        //System.out.println(pair.getKey() + " = " + pair.getValue());
-	        it.remove(); // avoids a ConcurrentModificationException
+		
+		for (Map.Entry<String, ArrayList<String>> each : this.master.entrySet()) {
+			String file_name = each.getKey();
+			ArrayList<String> includes = each.getValue();
+			split_file = file_name.split("/"); //get /Test/.../x.y to x.y
+			file = split_file[split_file.length -1];
+			raw_file = file.substring(0, file.length() -2);
+			
+			sb.append(raw_file + ".o : ");
+			sb.append(file + " ");
+			for (String item : includes) {
+				sb.append(item);
+				sb.append(" ");
+				
+			}
+			sb.append("\n");
 	    }
 		return sb.toString();
 	}
