@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,25 +13,33 @@ import java.io.FileNotFoundException;
 public class dependencyDiscoverer {
 	
 	private ArrayList<String> paths;
-	private Hashtable<String,ArrayList<String>> master;
-	private ArrayBlockingQueue<String> workQueue;
+	private ConcurrentHashMap<String,ArrayList<String>> master;
+	private ConcurrentLinkedQueue<String> workQueue;
 	//private final BlockingQueue<T> workQueue; // http://stackoverflow.com/questions/2233561/producer-consumer-work-queues
 	
 	public static void main(String[] args) {
 		dependencyDiscoverer discoverer = new dependencyDiscoverer(args);
-
+		System.out.println("Search Paths -> " + discoverer.paths);
+		System.out.println("Work Queue -> " + discoverer.workQueue);
 		System.out.println(discoverer);
-
 	}
 	
 	public dependencyDiscoverer(String[] args) {
 		paths = getPaths(args); // check args correct here
-		System.out.println("Succesfully got paths");
+		workQueue = getWorkQueue(args);
 		ArrayList<String> files = new ArrayList<String>();
 		for (int i = 1; i<args.length; i++) {
 			files.add(args[i]);
 		}
-		master = getMaster(paths,files);
+		master = getMaster(workQueue);
+	}
+
+	public ConcurrentLinkedQueue<String> getWorkQueue(String[] args){
+		ConcurrentLinkedQueue<String> workQueue = new ConcurrentLinkedQueue();
+		for (int i=1; i<args.length; i++) {
+			workQueue.add(args[i]);
+		}
+		return workQueue;
 	}
 
 	/*
@@ -53,43 +63,37 @@ public class dependencyDiscoverer {
 		String[] slicedcpath = cpath.split(":");  		// args[2].split(":");
 		
 		for (String element : slicedcpath) {
-			paths.add(element);
+			paths.add(element + "/");
 		}
-		
-		
 		return paths;
 	}
+
 	/*
-	* Hashtable Key = file Value = include files
+	* ConcurrentHashMap Key = file Value = include files
 	*/
-	private Hashtable<String,ArrayList<String>> getMaster(ArrayList<String> paths, ArrayList<String> files) {
-		Hashtable<String,ArrayList<String>> master = new Hashtable();
-		for (int i =0; i<paths.size(); i++) {
-			System.out.println("Paths [i] -> " + paths.get(i));
-			BufferedReader reader = null;
-			ArrayList file_includes = new ArrayList();
-			
-				for(int j=0; j<files.size(); j++) {
-					System.out.println("Looking for file ... "  + files.get(j)); //+paths.get(i)
-					try {
-					    File file = new File(paths.get(i) + files.get(j)); // "x.y"
-					    reader = new BufferedReader(new FileReader(file));
-					    String line;
-					    while ((line = reader.readLine()) != null) {
-					        if (line.startsWith("#include \"")) {
-					    		file_includes.add(line.split("\"")[1]);
-					    		
-					    	}
-					 	}
-					} catch (FileNotFoundException e) {
-					    	continue;
-					} catch (IOException e) {
-				   			e.printStackTrace(); 	
+	private ConcurrentHashMap<String,ArrayList<String>> getMaster(ConcurrentLinkedQueue workQueue) {
+		ConcurrentHashMap<String,ArrayList<String>> master = new ConcurrentHashMap();
+
+		for (String file_name : workQueue) {
+			try {
+				BufferedReader reader = null;
+				ArrayList file_includes = new ArrayList();
+				File file = new File(paths.get(file_name));
+				reader = new BufferedReader(new FileReader(file));
+
+				String line;
+				while ((line = reader.readLine()) != null) {
+					if (line.startsWith("#include \"")) {
+						file_includes.add(line.split("\"")[1]);
 					}
-				    master.put(paths.get(i), file_includes);
-				    System.out.println("FILE_INCLUDES " + file_includes);
 				}
-			
+			} catch (FileNotFoundException e) {
+				continue;
+			} catch (IOException e) {
+				e.printStackTrace(); 	
+			}
+			master.put(file_name, file_includes);
+			System.out.println("FILE_INCLUDES " + file_includes);
 		}
 		return master;
 	}
