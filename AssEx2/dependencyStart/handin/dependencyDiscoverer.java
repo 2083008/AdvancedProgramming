@@ -90,35 +90,45 @@ public class dependencyDiscoverer {
 		
 		ConcurrentHashMap<String,ArrayList<String>> master = new ConcurrentHashMap<String,ArrayList<String>>();
 
-		for (String file_name : workQueue) {
+		for (String file_name : workQueue) { // for each element in the work Q
+
+			if(getExtension(file_name).equals(".h")) {
+				//
+			} 
 
 			ArrayList<String> file_includes = getIncludes(file_name);
 			for (String item : file_includes) {
-				System.out.println("Includes " + file_includes);
+				System.out.println("Item in file_includes " + item);
 				if(getExtension(item).equals(".h")) {
-					workQueue.add(item);
+					if (fileExists(item)) {
+						workQueue.add(item);
+						System.out.println("Updated work que " + workQueue);
+					}
 				}
-			}
-			/*
-			if (!getExtension(file_name).equals(".h")) {
 				master.put(file_name, file_includes);
-				continue;
+				workQueue.remove(file_name);
 			}
-
-			if (getExtension(header).equals(".h")) {
-				file_includes.add(header);
-				workQueue.add(header);
-				ArrayList<String> list = this.master.get(file_name);
-				list.add(header);						// should check if item already exists
-
-			}
-			*/
-			System.out.println("Filename ->>> " + file_name);
-			System.out.println("FILE_INCLUDES " + file_includes);
-			}
+		}
 		return master;
 	}
-
+	/**
+	* Returns true if file found in paths, otherwise false
+	*/
+	public Boolean fileExists(String file) {
+		for (String path : this.paths) {
+			try {
+				BufferedReader reader = null;
+				
+				File file_read = new File(path + file);
+				reader = new BufferedReader(new FileReader(file_read));
+				System.out.println("FILE EXISTS");
+				return true;
+			} catch (FileNotFoundException e) {
+				continue;
+			}
+		}
+		return false;
+	}
 	public ArrayList<String> getIncludes(String file_name) {
 		ArrayList<String> file_includes = new ArrayList<String>();
 		try {
@@ -134,7 +144,9 @@ public class dependencyDiscoverer {
 			while ((line = reader.readLine()) != null) {
 				if (line.startsWith("#include \"")) {     		// if we find include then search??
 					header = line.split("\"")[1];        		// eg a.h
-					file_includes.add(header); 
+					if (getExtension(header).equals(".h")) {
+						file_includes.add(header);
+					}
 				}
 			}
 			reader.close();
@@ -148,12 +160,14 @@ public class dependencyDiscoverer {
 	
 	@Override
 	public String toString() {
+
 		System.out.println("BELOW IS THE TABLE");
 		StringBuffer sb = new StringBuffer();
 		Iterator<Entry<String, ArrayList<String>>> it = this.master.entrySet().iterator();
 		String[] split_file;
 		String file;
 		String raw_file;
+
 	    while (it.hasNext()) {
 	        Map.Entry pair = (Map.Entry)it.next();
 	        split_file = ((String) pair.getKey()).split("/"); //get /Test/.../x.y to x.y
