@@ -16,7 +16,7 @@ public class dependencyDiscoverer {
 	
 	private ArrayList<String> paths;
 	private ConcurrentHashMap<String,ArrayList<String>> master;
-	private ConcurrentLinkedQueue<String> workQueue;
+	private ConcurrentLinkedQueue<ArrayList<String>> workQueue;
 	//private final BlockingQueue<T> workQueue; // http://stackoverflow.com/questions/2233561/producer-consumer-work-queues
 	
 	public static void main(String[] args) {
@@ -50,15 +50,18 @@ public class dependencyDiscoverer {
 	
 	public dependencyDiscoverer(String[] args) {
 		paths = getPaths(args); 									// check args correct here
-		workQueue = new ConcurrentLinkedQueue<String>(); //getWorkQueue(args);
+		workQueue = new ConcurrentLinkedQueue<ArrayList<String>>(); //getWorkQueue(args);
 		workQueue = getWorkQueue(args);
 		master = getMaster(workQueue);
 	}
 
-	public ConcurrentLinkedQueue<String> getWorkQueue(String[] args){
-		ConcurrentLinkedQueue<String> workQueue = new ConcurrentLinkedQueue<String>();
+	public ConcurrentLinkedQueue<ArrayList<String>> getWorkQueue(String[] args){
+		ConcurrentLinkedQueue<ArrayList<String>> workQueue = new ConcurrentLinkedQueue<ArrayList<String>>();
+		ArrayList<String> queueElement = new ArrayList<String>();
 		for (int i=1; i<args.length; i++) {
-			workQueue.add(args[i]);
+			queueElement.add("");    								// no parent
+			queueElement.add(args[i]);
+			//workQueue.add(args[i]);
 		}
 		return workQueue;
 	}
@@ -98,19 +101,23 @@ public class dependencyDiscoverer {
 	* ConcurrentHashMap Key = file Value = include files
 	*/
 	//@SuppressWarnings("resource")
-	private ConcurrentHashMap<String,ArrayList<String>> getMaster(ConcurrentLinkedQueue<String> workQueue) {
+	private ConcurrentHashMap<String,ArrayList<String>> getMaster(ConcurrentLinkedQueue<ArrayList<String>> workQueue) {
 		
 		ConcurrentHashMap<String,ArrayList<String>> master = new ConcurrentHashMap<String,ArrayList<String>>();
 		String file_name;
 		while (workQueue.peek() != null) {								// go through workQueue
-			file_name = workQueue.poll();
+			file_name = workQueue.poll().get(1);
 			ArrayList<String> file_includes = getIncludes(file_name);
-			
+			ArrayList<String> found_includes = new ArrayList<String>();
+			String header_path;
 			for (String item : file_includes) {
 				System.out.println("Item in file_includes " + item);
 				if(getExtension(item).equals(".h")) {
-					if (fileExists(item)) {
-						workQueue.add(file_name + "/" +  item);
+					header_path = fileExists(item);
+					if (header_path != null) {
+						found_includes.add(file_name);;
+						found_includes.add(item);
+						workQueue.add(found_includes);
 						System.out.println("Updated work que " + workQueue);
 					}
 				}
@@ -122,9 +129,9 @@ public class dependencyDiscoverer {
 		return master;
 	}
 	/**
-	* Returns true if file found in paths, otherwise false
+	* Returns path if file found in paths, otherwise null
 	*/
-	public Boolean fileExists(String file) {
+	public String fileExists(String file) {
 		for (String path : this.paths) {
 			try {
 				BufferedReader reader = null;
@@ -133,12 +140,12 @@ public class dependencyDiscoverer {
 				reader = new BufferedReader(new FileReader(file_read));
 				System.out.println("FILE EXISTS");
 				
-				return true;
+				return path;
 			} catch (FileNotFoundException e) {
 				continue;
 			}
 		}
-		return false;
+		return null;
 	}
 	public ArrayList<String> getIncludes(String file_name) {
 		ArrayList<String> file_includes = new ArrayList<String>();
@@ -162,7 +169,7 @@ public class dependencyDiscoverer {
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
-			System.out.println("file not found -> " + file_name);
+			System.out.println("file not found ->" + file_name);
 		} catch (IOException e) {
 			e.printStackTrace(); 	
 		}
