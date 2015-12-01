@@ -10,6 +10,7 @@ public class Worker implements Runnable{
 
 	private String file_string;
 	private ConcurrentHashMap<String,ArrayList<String>> master;
+	private String found_include;
 	
 	public Worker(String file_string, ConcurrentHashMap<String,ArrayList<String>> master){// , ConcurrentHashMap<String,ArrayList<String>> master) {
 		this.file_string = file_string;
@@ -21,7 +22,6 @@ public class Worker implements Runnable{
 	public void run() {
 		ArrayList<String> file_includes = new ArrayList<String>();
 		System.out.println("From the worker THREAD");
-		System.out.println(master);
 		try {
 			
 			BufferedReader reader = null;
@@ -41,10 +41,8 @@ public class Worker implements Runnable{
 		} catch (IOException e) {
 			e.printStackTrace(); 	
 		}
-		//master.put(file_string, file_includes);
+		master.put(file_string, file_includes);
 		System.out.println("FILE_INCLUDES " + file_includes);
-		System.out.println(master);
-
 	}
 	
 }

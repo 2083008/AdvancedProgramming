@@ -50,6 +50,7 @@ public class dependencyDiscoverer {
 	
 	public dependencyDiscoverer(String[] args) {
 		paths = getPaths(args); 									// check args correct here
+		workQueue = new ConcurrentLinkedQueue<String>(); //getWorkQueue(args);
 		workQueue = getWorkQueue(args);
 		master = getMaster(workQueue);
 	}
@@ -100,25 +101,23 @@ public class dependencyDiscoverer {
 	private ConcurrentHashMap<String,ArrayList<String>> getMaster(ConcurrentLinkedQueue<String> workQueue) {
 		
 		ConcurrentHashMap<String,ArrayList<String>> master = new ConcurrentHashMap<String,ArrayList<String>>();
-
-		for (String file_name : workQueue) { // for each element in the work Q
-
-			if(getExtension(file_name).equals(".h")) {
-				//
-			} 
-
+		String file_name;
+		while (workQueue.peek() != null) {								// go through workQueue
+			file_name = workQueue.poll();
 			ArrayList<String> file_includes = getIncludes(file_name);
+			
 			for (String item : file_includes) {
 				System.out.println("Item in file_includes " + item);
 				if(getExtension(item).equals(".h")) {
 					if (fileExists(item)) {
-						workQueue.add(item);
+						workQueue.add(file_name + "/" +  item);
 						System.out.println("Updated work que " + workQueue);
 					}
 				}
 				master.put(file_name, file_includes);
 				workQueue.remove(file_name);
 			}
+
 		}
 		return master;
 	}
@@ -163,7 +162,7 @@ public class dependencyDiscoverer {
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
-			System.out.println("file not found");
+			System.out.println("file not found -> " + file_name);
 		} catch (IOException e) {
 			e.printStackTrace(); 	
 		}
