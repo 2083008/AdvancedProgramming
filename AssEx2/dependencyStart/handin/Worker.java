@@ -8,11 +8,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Worker implements Runnable{
 
-	private ArrayList<String> file_string;
+	private String file_string;
 	private ConcurrentHashMap<String,ArrayList<String>> master;
 	private String found_include;
 	
-	public Worker(ArrayList<String> file_string, ConcurrentHashMap<String,ArrayList<String>> master){// , ConcurrentHashMap<String,ArrayList<String>> master) {
+	public Worker(String file_string, ConcurrentHashMap<String,ArrayList<String>> master){// , ConcurrentHashMap<String,ArrayList<String>> master) {
 		this.file_string = file_string;
 		this.master = master;
 	}
@@ -25,7 +25,7 @@ public class Worker implements Runnable{
 		try {
 			
 			BufferedReader reader = null;
-			File file = new File(file_string.get(1));
+			File file = new File(file_string);
 			reader = new BufferedReader(new FileReader(file));
 			
 			String line;
@@ -41,7 +41,7 @@ public class Worker implements Runnable{
 		} catch (IOException e) {
 			e.printStackTrace(); 	
 		}
-		master.put(file_string.get(1), file_includes);
+		master.put(file_string, file_includes);
 		System.out.println("FILE_INCLUDES " + file_includes);
 	}
 	
