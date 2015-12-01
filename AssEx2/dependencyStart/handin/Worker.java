@@ -30,7 +30,7 @@ public class Worker implements Runnable{
 			
 			String line;
 			while ((line = reader.readLine()) != null) {
-				if (line.startsWith("#include \"")) {     // if we find include then search??
+				if (line.contains("#include \"")) {     // if we find include then search??
 					file_includes.add(line.split("\"")[1]);
 				}
 			}

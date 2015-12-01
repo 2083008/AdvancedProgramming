@@ -30,8 +30,8 @@ public class dependencyDiscoverer {
 		if (crawlerpath != null) {
 			threadNum =  Integer.parseInt(crawlerpath);
 		}
-		System.out.println("without threading");
-		System.out.println(discoverer);
+		//System.out.println("without threading");
+		//System.out.println(discoverer);
 
 		discoverer.workQueue = discoverer.getWorkQueue(args);
 		while (discoverer.workQueue.peek() != null) {
@@ -52,7 +52,8 @@ public class dependencyDiscoverer {
 		paths = getPaths(args); 									// check args correct here
 		//workQueue = new ConcurrentLinkedQueue<String>(); //getWorkQueue(args);
 		workQueue = getWorkQueue(args);
-		master = getMaster(workQueue);
+		master = new ConcurrentHashMap<String,ArrayList<String>>();
+		//master = getMaster(workQueue);
 	}
 
 	public ConcurrentLinkedQueue<String> getWorkQueue(String[] args){
@@ -160,7 +161,7 @@ public class dependencyDiscoverer {
 			String line;
 			String header;
 			while ((line = reader.readLine()) != null) {
-				if (line.startsWith("#include \"")) {     			// if we find include then search??
+				if (line.contains("#include \"")) {     			// if we find include then search??
 					header = line.split("\"")[1];        			// eg a.h
 					if (getExtension(header).equals(".h")) {
 						file_includes.add(header);
@@ -184,21 +185,31 @@ public class dependencyDiscoverer {
 		String[] split_file;
 		String file;
 		String raw_file;
+		ArrayList<String> extra_includes;
 		
 		for (Map.Entry<String, ArrayList<String>> each : this.master.entrySet()) {
 			String file_name = each.getKey();
 			ArrayList<String> includes = each.getValue();
-			split_file = file_name.split("/"); //get /Test/.../x.y to x.y
-			file = split_file[split_file.length -1];
-			raw_file = file.substring(0, file.length() -2);
-			
-			sb.append(raw_file + ".o : ");
-			sb.append(file + " ");
-			for (String item : includes) {
-				sb.append(item);
-				sb.append(" ");
-			}
-			sb.append("\n");
+			if (!getExtension(file_name).equals(".h")) {
+				split_file = file_name.split("/"); //get /Test/.../x.y to x.y
+				file = split_file[split_file.length -1];
+				raw_file = file.substring(0, file.length() -2);
+				
+				sb.append(raw_file + ".o : ");
+				sb.append(file + " ");
+				for (String item : includes) {
+					extra_includes = this.master.get(item);
+					if (extra_includes != null) {
+						for (String ea : extra_includes) {
+							sb.append(ea);
+							sb.append(" ");
+						}
+					}
+					sb.append(item);
+					sb.append(" ");
+				}
+				sb.append("\n");
+			} 
 	    }
 		return sb.toString();
 	}
