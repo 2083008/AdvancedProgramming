@@ -12,17 +12,21 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
+
+/**
+*	Alex Smith 2083008s APH Excercise 2
+*	This is my own work as defined in the Academic Ethics agreement
+*/
+
+
 public class dependencyDiscoverer {
 	
 	private ArrayList<String> paths;
 	private ConcurrentHashMap<String,ArrayList<String>> master;
 	private ConcurrentLinkedQueue<String> workQueue;
-	//private final BlockingQueue<T> workQueue; // http://stackoverflow.com/questions/2233561/producer-consumer-work-queues
 	
 	public static void main(String[] args) {
 		dependencyDiscoverer discoverer = new dependencyDiscoverer(args);
-		System.out.println("Search Paths -> " + discoverer.paths);
-		System.out.println("Work Queue -> " + discoverer.workQueue);
 		
 		Integer threadNum = 2;
 		
@@ -30,10 +34,9 @@ public class dependencyDiscoverer {
 		if (crawlerpath != null) {
 			threadNum =  Integer.parseInt(crawlerpath);
 		}
-		//System.out.println("without threading");
-		//System.out.println(discoverer);
 
 		discoverer.workQueue = discoverer.getWorkQueue(args);
+
 		while (discoverer.workQueue.peek() != null) {
 			Worker newThread = new Worker(discoverer.workQueue.poll(), discoverer.master);
 			Thread t1 = new Thread(newThread);
@@ -44,7 +47,6 @@ public class dependencyDiscoverer {
 
 			}
 		}	
-		System.out.println(discoverer.master);
 		System.out.println(discoverer);
 	}
 	
@@ -106,7 +108,7 @@ public class dependencyDiscoverer {
 		String file_name;
 		while (workQueue.peek() != null) {								// go through workQueue
 
-			System.out.println("workQueue = " + workQueue );
+			//System.out.println("workQueue = " + workQueue );
 			file_name = workQueue.poll();
 			ArrayList<String> file_includes;
 			if(getExtension(file_name).equals(".h")) {
@@ -117,7 +119,7 @@ public class dependencyDiscoverer {
 
 			String header_path;
 			for (String item : file_includes) {
-				System.out.println("Item in file_includes " + item);
+				//System.out.println("Item in file_includes " + item);
 				if(getExtension(item).equals(".h")) {
 					if (fileExists(item) != null) {
 						workQueue.add(item);
@@ -140,7 +142,7 @@ public class dependencyDiscoverer {
 				
 				File file_read = new File(path + file);
 				reader = new BufferedReader(new FileReader(file_read));
-				System.out.println("FILE EXISTS -> path -> " + path + file);
+				//System.out.println("FILE EXISTS -> path -> " + path + file);
 				return path + file;
 			} catch (FileNotFoundException e) {
 				continue;
@@ -156,7 +158,7 @@ public class dependencyDiscoverer {
 			File file = new File(file_name);
 			reader = new BufferedReader(new FileReader(file));
 
-			System.out.println("Looking for " + file_name);
+			//System.out.println("Looking for " + file_name);
 			
 			String line;
 			String header;
@@ -170,7 +172,7 @@ public class dependencyDiscoverer {
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
-			System.out.println("file not found ->" + file_name);
+			//System.out.println("file not found ->" + file_name);
 		} catch (IOException e) {
 			e.printStackTrace(); 	
 		}
@@ -180,7 +182,7 @@ public class dependencyDiscoverer {
 	@Override
 	public String toString() {
 
-		System.out.println("BELOW IS THE TABLE");
+		//System.out.println("BELOW IS THE TABLE");
 		StringBuffer sb = new StringBuffer();
 		String[] split_file;
 		String file;

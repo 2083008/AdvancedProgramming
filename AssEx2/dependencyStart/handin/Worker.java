@@ -6,6 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+*	Alex Smith 2083008s APH Excercise 2
+*	This is my own work as defined in the Academic Ethics agreement
+*/
+
 public class Worker implements Runnable{
 
 	private String file_string;
@@ -21,7 +26,6 @@ public class Worker implements Runnable{
 	@Override
 	public void run() {
 		ArrayList<String> file_includes = new ArrayList<String>();
-		System.out.println("From the worker THREAD");
 		try {
 			
 			BufferedReader reader = null;
@@ -37,12 +41,11 @@ public class Worker implements Runnable{
 			
 			reader.close();
 		} catch (FileNotFoundException e) {
-			System.out.println("file not found");
+
 		} catch (IOException e) {
 			e.printStackTrace(); 	
 		}
 		master.put(file_string, file_includes);
-		System.out.println("FILE_INCLUDES " + file_includes);
 	}
 	
 }
